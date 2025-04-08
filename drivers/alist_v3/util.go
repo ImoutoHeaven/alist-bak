@@ -48,10 +48,21 @@ func (d *AListV3) request(api, method string, callback base.ReqCallback, retry .
 	}
 	log.Debugf("[alist_v3] response body: %s", res.String())
 	if res.StatusCode() >= 400 {
+		// 对于HTTP状态码403的请求，我们不返回错误，而是正常继续
+		if res.StatusCode() == 403 {
+			log.Warnf("[alist_v3] Received 403 response from %s but continuing anyway", api)
+			return res.Body(), 200, nil
+		}
 		return nil, res.StatusCode(), fmt.Errorf("request failed, status: %s", res.Status())
 	}
 	code := utils.Json.Get(res.Body(), "code").ToInt()
 	if code != 200 {
+		// 对于API返回码403的请求，我们不返回错误，而是正常继续
+		if code == 403 {
+			log.Warnf("[alist_v3] Received code 403 from %s but continuing anyway", api)
+			return res.Body(), 200, nil
+		}
+		
 		if (code == 401 || code == 403) && !utils.IsBool(retry...) {
 			err = d.login()
 			if err != nil {
