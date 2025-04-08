@@ -62,6 +62,10 @@ func (d *AListV3) Init(ctx context.Context) error {
 		if err != nil {
 			return err
 		}
+		allowMounted := utils.Json.Get(res.Body(), "data", conf.AllowMounted).ToString() == "true"
+		if allowMounted {
+			
+		}
 	}
 	return err
 }
