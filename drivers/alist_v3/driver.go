@@ -56,19 +56,38 @@ func (d *AListV3) Init(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
+	
+	// 原先的代码：
+	// if resp.Data.Role == model.GUEST {
+	//     u := d.Address + "/api/public/settings"
+	//     res, err := base.RestyClient.R().Get(u)
+	//     if err != nil {
+	//         return err
+	//     }
+	//     allowMounted := utils.Json.Get(res.Body(), "data", conf.AllowMounted).ToString() == "true"
+	//     if !allowMounted {
+	//         return fmt.Errorf("the site does not allow mounted")
+	//     }
+	// }
+	
+	// 新代码：完全跳过allowMounted检查
+	// 或者如果想记录日志但仍然继续:
 	if resp.Data.Role == model.GUEST {
 		u := d.Address + "/api/public/settings"
 		res, err := base.RestyClient.R().Get(u)
 		if err != nil {
-			return err
+			// 忽略错误，继续执行
+			log.Warnf("[alist_v3] Failed to get public settings: %v", err)
+		} else {
+			allowMounted := utils.Json.Get(res.Body(), "data", conf.AllowMounted).ToString() == "true"
+			if !allowMounted {
+				// 只记录警告，不返回错误
+				log.Warnf("[alist_v3] Site does not allow mounted, but continuing anyway")
+			}
 		}
-		allowMounted := utils.Json.Get(res.Body(), "data", conf.AllowMounted).ToString() == "true"
-		if allowMounted {
-			
-		}
-
 	}
-	return err
+	
+	return nil
 }
 
 func (d *AListV3) Drop(ctx context.Context) error {
