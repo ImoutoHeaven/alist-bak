@@ -83,6 +83,7 @@ func (d *AListV3) Init(ctx context.Context) error {
 			if !allowMounted {
 				// 只记录警告，不返回错误
 				log.Warnf("[alist_v3] Site does not allow mounted, but continuing anyway")
+				return nil
 			}
 		}
 	}
